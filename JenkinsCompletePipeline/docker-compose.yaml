@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  frontend:
+    image: ankit42098/taskboard-frontend:v1
+    container_name: taskboard-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+    image: ankit42098/taskboard-backend:v1
+    container_name: taskboard-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/taskboard
+      - PORT=5000
+      - NODE_ENV=production
+      - CORS_ORIGIN=http://localhost
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

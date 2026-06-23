@@ -1,0 +1,27 @@
+# Dependencies (installed fresh in image)
+node_modules/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test & coverage
+coverage/
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docs
+README.md
+
+# Docker
+Dockerfile
+.dockerignore
