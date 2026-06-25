@@ -10,49 +10,63 @@ pipeline {
         stage('init'){
             steps {
                 script {
-                    gv = load 'pipeline.groovy'
+                    dir('JenkinsCompletePipeline'){
+                        gv = load 'pipeline.groovy'
+                    }
                 }
             }
         }
         stage('Increment backend version') {
             steps {
               script {
-                gv.IncrementBackendVersion()
+                dir('JenkinsCompletePipeline'){
+                    gv.IncrementBackendVersion()
+                }
               }
             }
         }
         stage('Build backend image') {
             steps {
                 script {
-                    gv.BuildBackendImage()
+                    dir('JenkinsCompletePipeline'){
+                        gv.BuildBackendImage()
+                    }
                 }
             }
         }
         stage('Increment frontend version') {
             steps {
                 script {
-                    gv.IncrementFrontendVersion()
+                    dir('JenkinsCompletePipeline'){
+                        gv.IncrementFrontendVersion()
+                    }
                 }
             }
         }
         stage('Build frontend image') {
             steps { 
                 script {
-                    gv.BuildFrontendImage()
+                    dir('JenkinsCompletePipeline'){
+                        gv.BuildFrontendImage()
+                    }
                 }
             }
         }
         stage('Deploy to server') {
             steps {
                 script {
-                    gv.DeployOnServer()
+                    dir('JenkinsCompletePipeline'){
+                        gv.DeployOnServer()
+                    }
                 }
             }
         }
         stage('Version bump') {
             steps {
                 script {
-                    gv.VersionBump()
+                    dir('JenkinsCompletePipeline'){
+                        gv.VersionBump()
+                    }
                 }
             }
         }
