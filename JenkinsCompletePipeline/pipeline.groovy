@@ -12,7 +12,7 @@ def IncrementBackendVersion(){
 def BuildBackendImage(){
     echo "Building backend image..."
   
-      withDockerRegistry([credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']){
+      withCredentials([usernamePassword(credentialsId: 'docker_hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]){
         sh 'echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin'
         sh 'docker build -t ankit42098/taskboard-backend:${env.BACKEND_VERSION} ./backend'
         sh 'docker push ankit42098/taskboard-backend:${env.BACKEND_VERSION}'
@@ -32,7 +32,7 @@ def IncrementFrontendVersion(){
 
 def BuildFrontendImage(){
       echo "Building frontend image..."
-      withDockerRegistry([credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']){
+      withCredentials([usernamePassword(credentialsId: 'docker_hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]){
         sh 'echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin'
         sh 'docker build -t ankit42098/taskboard-frontend:${env.FRONTEND_VERSION} ./frontend'
         sh 'docker push ankit42098/taskboard-frontend:${env.FRONTEND_VERSION}'
@@ -46,7 +46,7 @@ def DeployOnServer(){
 
 def VersionBump(){
     echo "Version bumping..."
-    withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]){
+    withCredentials([usernamePassword(credentialsId: 'gitHub', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]){
       sh '''
       git config --global user.name "Jenkins"
       git config --global user.email "jenkins@taskboard.com"
