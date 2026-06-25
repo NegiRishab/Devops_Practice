@@ -1,0 +1,60 @@
+def gv 
+
+pipeline {
+    agent any
+    tools {
+        nodejs 'node-22'
+    }
+    
+    stages {
+        stage('init'){
+            steps {
+                script {
+                    gv = load 'pipeline.groovy'
+                }
+            }
+        }
+        stage('Increment backend version') {
+            steps {
+              script {
+                gv.IncrementBackendVersion()
+              }
+            }
+        }
+        stage('Build backend image') {
+            steps {
+                script {
+                    gv.BuildBackendImage()
+                }
+            }
+        }
+        stage('Increment frontend version') {
+            steps {
+                script {
+                    gv.IncrementFrontendVersion()
+                }
+            }
+        }
+        stage('Build frontend image') {
+            steps { 
+                script {
+                    gv.BuildFrontendImage()
+                }
+            }
+        }
+        stage('Deploy to server') {
+            steps {
+                script {
+                    gv.DeployOnServer()
+                }
+            }
+        }
+        stage('Version bump') {
+            steps {
+                script {
+                    gv.VersionBump()
+                }
+            }
+        }
+    }
+}
