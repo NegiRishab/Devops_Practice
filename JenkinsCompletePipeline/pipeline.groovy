@@ -59,7 +59,7 @@ def BuildFrontendImage(){
 }
 
 def DeployOnServer(){
-    echo "Deploying on server..."
+    echo "Deploying on server... not deploy yert"
 }
 
 def VersionBump(){
