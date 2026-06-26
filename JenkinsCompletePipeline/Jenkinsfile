@@ -13,6 +13,7 @@ pipeline {
                     dir('JenkinsCompletePipeline'){
                         gv = load 'pipeline.groovy'
                     }
+                    echo "branch name is ${env.BRANCH_NAME}"
                 }
             }
         }
@@ -53,6 +54,11 @@ pipeline {
             }
         }
         stage('Deploy to server') {
+            when {
+                    expression {
+                        return env.BRANCH_NAME == 'main'
+                    }
+                }
             steps {
                 script {
                     dir('JenkinsCompletePipeline'){
