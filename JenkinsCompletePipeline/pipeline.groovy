@@ -14,9 +14,9 @@ def BuildBackendImage(){
   
       withCredentials([usernamePassword(credentialsId: 'docker_hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]){
         sh 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
-        sh "docker build -t ankit42098/taskboard-backend:${env.BACKEND_VERSION} ./backend"
-        sh "docker push ankit42098/taskboard-backend:${env.BACKEND_VERSION}"
-        env.BACKEND_IMAGE = "ankit42098/taskboard-backend:${env.BACKEND_VERSION}"
+        sh "docker build -t ankit42098/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION} ./backend"
+        sh "docker push ankit42098/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
+        env.BACKEND_IMAGE = "ankit42098/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
       }
 }
 
@@ -34,9 +34,9 @@ def BuildFrontendImage(){
       echo "Building frontend image..."
       withCredentials([usernamePassword(credentialsId: 'docker_hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]){
         sh 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
-        sh "docker build -t ankit42098/taskboard-frontend:${env.FRONTEND_VERSION} ./frontend"
-        sh "docker push ankit42098/taskboard-frontend:${env.FRONTEND_VERSION}"
-        env.FRONTEND_IMAGE = "ankit42098/taskboard-frontend:${env.FRONTEND_VERSION}"
+        sh "docker build -t ankit42098/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION} ./frontend"
+        sh "docker push ankit42098/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
+        env.FRONTEND_IMAGE = "ankit42098/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
       }
 }
 
@@ -53,7 +53,7 @@ def VersionBump(){
       git remote set-url origin "https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/${GITHUB_USERNAME}/Devops_Practice.git"
       git add .
       git commit -m "Version bump"
-      git push origin HEAD:main
+      git push origin HEAD:${BRANCH_NAME}
      
       '''
     }
