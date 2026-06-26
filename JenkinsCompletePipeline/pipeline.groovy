@@ -70,7 +70,7 @@ def VersionBump(){
       git config --global user.email "jenkins@taskboard.com"
       git remote set-url origin "https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/${GITHUB_USERNAME}/Devops_Practice.git"
       git add .
-      git commit -m "Version bump [skip ci]"
+      git commit -m "Version bump"
       git push origin HEAD:${BRANCH_NAME}
      
       '''
