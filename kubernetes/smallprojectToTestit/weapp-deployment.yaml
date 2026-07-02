@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weapp-deployment
+  labels:
+    app: weapp
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weapp
+
+  template:
+    metadata:
+      labels:
+        app: weapp
+
+    spec:
+      containers:
+        - name: weapp
+          image: ankit42098/testing-app:v1
+
+          ports:
+            - containerPort: 3000
+
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-username
+
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: database-url
+            - name: MONGODB_URI
+              value: "mongodb://$(MONGO_INITDB_ROOT_USERNAME):$(MONGO_INITDB_ROOT_PASSWORD)@$(DATABASE_URL)"
+
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: port
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weapp-service
+  labels:
+    app: weapp
+
+spec:
+  type: LoadBalancer
+
+  selector:
+    app: weapp
+
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30000
