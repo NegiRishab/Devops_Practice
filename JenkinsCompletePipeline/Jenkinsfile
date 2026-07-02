@@ -6,10 +6,6 @@ pipeline {
         nodejs 'node-22'
     }
 
-    environment {
-        NOTIFY_EMAIL = 'rishabhvicky98@gmail.com'
-    }
-
     stages {
         stage('init') {
             steps {
@@ -91,37 +87,4 @@ pipeline {
         }
     }
 
-    post {
-        success {
-            emailext(
-                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """Pipeline succeeded!
-
-Job: ${env.JOB_NAME}
-Build: #${env.BUILD_NUMBER}
-Branch: ${env.BRANCH_NAME ?: 'N/A'}
-Backend image: ${env.BACKEND_IMAGE ?: 'N/A'}
-Frontend image: ${env.FRONTEND_IMAGE ?: 'N/A'}
-
-Build URL: ${env.BUILD_URL}
-""",
-                to: "${env.NOTIFY_EMAIL}"
-            )
-        }
-        failure {
-            emailext(
-                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """Pipeline failed!
-
-Job: ${env.JOB_NAME}
-Build: #${env.BUILD_NUMBER}
-Branch: ${env.BRANCH_NAME ?: 'N/A'}
-
-Check the console output for details:
-${env.BUILD_URL}console
-""",
-                to: "${env.NOTIFY_EMAIL}"
-            )
-        }
-    }
 }

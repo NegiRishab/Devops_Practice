@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Small Project - MongoDB CRUD</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Small Project</h1>
+      <p>View, add, edit, and delete items from MongoDB</p>
+    </header>
+
+    <section class="form-card">
+      <h2 id="form-title">Add Item</h2>
+      <form id="item-form">
+        <input type="hidden" id="item-id" />
+        <label>
+          Name
+          <input type="text" id="name" required placeholder="Item name" />
+        </label>
+        <label>
+          Description
+          <textarea id="description" rows="3" placeholder="Optional description"></textarea>
+        </label>
+        <div class="form-actions">
+          <button type="submit" id="submit-btn">Add Item</button>
+          <button type="button" id="cancel-btn" class="secondary" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="list-card">
+      <div class="list-header">
+        <h2>Items</h2>
+        <button type="button" id="refresh-btn" class="secondary">Refresh</button>
+      </div>
+      <p id="status" class="status">Loading...</p>
+      <ul id="items-list"></ul>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

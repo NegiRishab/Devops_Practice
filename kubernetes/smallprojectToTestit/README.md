@@ -1,0 +1,1 @@
+This project was set up to learn how Kubernetes internal and external Services work. For this purpose, I built a small application and used its Docker image for deployment. This also helped me revise and reinforce my Docker concepts while working with Kubernetes.
