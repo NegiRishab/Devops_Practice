@@ -1,3 +1,6 @@
+# Blueprint — override with values/redis-cart-values.yaml via -f
+# Deploy: helm install redis ./charts/redis -f values/redis-cart-values.yaml
+
 appName: redis-service
 appImage: redis
 appVersion: latest
@@ -27,10 +30,10 @@ resources:
     cpu: "200m"
     memory: "128Mi"
 volumeMounts:
-- name: redis-storage
-  mountPath: /data
+  - name: redis-storage
+    mountPath: /data
 volumes:
-- name: redis-storage
-  emptyDir: {}
+  - name: redis-storage
+    emptyDir: {}
 serviceType: ClusterIP
 servicePort: 13000
