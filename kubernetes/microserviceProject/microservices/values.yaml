@@ -1,0 +1,37 @@
+# Blueprint — override with values/*-service-values.yaml via -f
+# Deploy: helm install <release> ./microservices -f ../values/email-service-values.yaml
+
+appName: servicename
+appImage: gcr.io/google-samples/microservices-demo/servicename
+appVersion: v0.0.0
+appReplicas: 2
+containerPort: 8080
+containerName: servicename
+containerEnvVars:
+  - name: ENV_VAR_ONE
+    value: "value_one"
+  - name: ENV_VAR_TWO
+    value: "value_two"
+livenessProbe:
+  grpc:
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  grpc:
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+serviceType: ClusterIP
+servicePort: 8080
