@@ -29,8 +29,8 @@ echo "Deploying recommendation..."
 helm install recommendation ./charts/microservices -f values/recommendation-service-values.yaml
 
 # TODO: add cart-service-values.yaml — checkout & frontend need cart-service:12000
-# echo "Deploying cart..."
-# helm install cart ./charts/microservices -f values/cart-service-values.yaml
+echo "Deploying cart..."
+helm install cart ./charts/microservices -f values/cart-service-values.yaml
 
 echo "Deploying checkout..."
 helm install checkout ./charts/microservices -f values/checkout-service-values.yaml

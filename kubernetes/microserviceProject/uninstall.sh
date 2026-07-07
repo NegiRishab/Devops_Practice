@@ -6,6 +6,6 @@ helm uninstall currency
 helm uninstall shipping
 helm uninstall ad
 helm uninstall recommendation
-helm uninstall cart
 helm uninstall checkout
+helm uninstall cart
 helm uninstall frontend

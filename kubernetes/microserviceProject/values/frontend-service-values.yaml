@@ -22,18 +22,25 @@ containerEnvVars:
   value: shipping-service:10000
 livenessProbe:
   httpGet:
-    path: /
+    path: /_healthz
     port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 30
+    httpHeaders:
+      - name: Cookie
+        value: shop_session-id=x-liveness-probe
+  initialDelaySeconds: 10
+  periodSeconds: 10
   timeoutSeconds: 10
   failureThreshold: 3
+
 readinessProbe:
   httpGet:
-    path: /
+    path: /_healthz
     port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 30
+    httpHeaders:
+      - name: Cookie
+        value: shop_session-id=x-readiness-probe
+  initialDelaySeconds: 10
+  periodSeconds: 10
   timeoutSeconds: 10
   failureThreshold: 3
 resources:

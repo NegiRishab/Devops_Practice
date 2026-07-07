@@ -1,0 +1,45 @@
+releases:
+  - name: redis
+    chart: ./charts/redis
+    values:
+      - ./values/redis-cart-values.yaml
+  - name: email
+    chart: ./charts/microservices
+    values:
+      - ./values/email-service-values.yaml
+  - name: product-catalog
+    chart: ./charts/microservices
+    values:
+      - ./values/product-catalog-service-values.yaml
+  - name: payment
+    chart: ./charts/microservices
+    values:
+      - ./values/payment-service-values.yaml
+  - name: currency
+    chart: ./charts/microservices
+    values:
+      - ./values/currency-service-values.yaml
+  - name: shipping
+    chart: ./charts/microservices
+    values:
+      - ./values/shipping-service-values.yaml
+  - name: ad
+    chart: ./charts/microservices
+    values:
+      - ./values/ad-service-values.yaml
+  - name: recommendation
+    chart: ./charts/microservices
+    values:
+      - ./values/recommendation-service-values.yaml
+  - name: checkout
+    chart: ./charts/microservices
+    values:
+      - ./values/checkout-service-values.yaml
+  - name: cart
+    chart: ./charts/microservices
+    values:
+      - ./values/cart-service-values.yaml
+  - name: frontend
+    chart: ./charts/microservices
+    values:
+      - ./values/frontend-service-values.yaml
