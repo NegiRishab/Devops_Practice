@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  serviceName: {{ .Values.headlessService.name }}
+  replicas: {{ .Values.appReplicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - name: {{ default .Values.containerName .Values.appName }}
+          image: "{{ .Values.appImage }}:{{ .Values.appVersion }}"
+          command: ["/bin/sh", "{{ .Values.configMap.mountPath }}/start-redis.sh"]
+          ports:
+            - name: redis
+              containerPort: {{ .Values.containerPort }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: {{ .Values.persistence.volumeName }}
+              mountPath: {{ .Values.persistence.mountPath }}
+            - name: {{ .Values.configMap.volumeName }}
+              mountPath: {{ .Values.configMap.mountPath }}
+              readOnly: true
+      volumes:
+        - name: {{ .Values.configMap.volumeName }}
+          configMap:
+            name: {{ .Values.appName }}-config
+            defaultMode: {{ .Values.configMap.defaultMode }}
+
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ .Values.persistence.volumeName }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.persistence.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}

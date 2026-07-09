@@ -1,0 +1,33 @@
+appName: payment-service
+appImage: gcr.io/google-samples/microservices-demo/paymentservice
+appVersion: v0.8.0
+appReplicas: 2
+containerPort: 50051
+containerEnvVars:
+- name: PORT
+  value: "50051"
+- name: DISABLE_PROFILER
+  value: "1"
+livenessProbe:
+  grpc:
+    port: 50051
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  grpc:
+    port: 50051
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+serviceType: ClusterIP
+servicePort: 8000
