@@ -5,7 +5,7 @@ appReplicas: 2
 containerPort: 7070
 containerEnvVars:
   - name: REDIS_ADDR
-    value: redis-service:13000
+    value: redis-master:6379
 livenessProbe:
   grpc:
     port: 7070

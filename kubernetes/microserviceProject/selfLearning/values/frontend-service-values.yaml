@@ -50,6 +50,5 @@ resources:
   limits:
     cpu: "200m"
     memory: "128Mi"
-serviceType: LoadBalancer
+serviceType: ClusterIP
 servicePort: 9090
-nodePort: 30090

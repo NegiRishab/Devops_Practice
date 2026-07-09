@@ -1,8 +1,13 @@
+repositories:
+  - name: redis
+    url: https://charts.bitnami.com/bitnami
+
+
 releases:
   - name: redis
-    chart: ./charts/redis
+    chart: bitnami/redis
     values:
-      - ./values/redis-cart-values.yaml
+      - ./values/redis-bitanami-values.yaml
   - name: email
     chart: ./charts/microservices
     values:

@@ -1,0 +1,26 @@
+# Production-style Redis (Bitnami)
+architecture: replication
+
+auth:
+  enabled: false
+
+master:
+  persistence:
+    enabled: true
+    storageClass: linode-block-storage-retain
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+replica:
+  replicaCount: 2
+  persistence:
+    enabled: true
+    storageClass: linode-block-storage-retain
+    size: 10Gi
+
+# Optional: production HA with auto failover
+# sentinel:
+#   enabled: true
