@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+data:
+  mongo-data-base-url: mongo-service:27017
+  mongo-port: "3000"
