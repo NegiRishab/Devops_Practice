@@ -1,0 +1,26 @@
+--- 
+- name: Create nginx web server 
+  hosts: linode
+  become: true
+  tasks:
+    # - name: Update apt package index
+    #   apt:
+    #     update_cache: yes
+    # - name: Install nginx
+    #   apt:
+    #     name: nginx
+    #     state: present
+    # - name: Start nginx service
+    #   service:
+    #     name: nginx
+    #     state: started
+    #     enabled: true
+    - name: unistall nginx
+      apt:
+        name: nginx
+        state: absent
+    - name: Stop nginx service
+      service:
+        name: nginx
+        state: stopped
+        enabled: false
