@@ -1,0 +1,47 @@
+---
+- name: Stop and remove Nexus
+  hosts: linode
+  become: yes
+  tasks:
+
+    - name: Stop Nexus
+      command: /opt/nexus/bin/nexus stop
+      become_user: nexus
+      ignore_errors: yes
+
+    - name: Remove Nexus installation
+      file:
+        path: /opt/nexus
+        state: absent
+
+    - name: Remove Nexus data
+      file:
+        path: /opt/sonatype-work
+        state: absent
+
+    - name: Remove Nexus archive
+      file:
+        path: /opt/nexus.tar.gz
+        state: absent
+
+    - name: Remove nexus user
+      user:
+        name: nexus
+        state: absent
+        remove: yes
+
+    - name: Remove nexus group
+      group:
+        name: nexus
+        state: absent
+
+    - name: Remove Java 8
+      apt:
+        name: openjdk-8-jre-headless
+        state: absent
+        purge: yes
+
+    - name: Remove net-tools
+      apt:
+        name: net-tools
+        state: absent

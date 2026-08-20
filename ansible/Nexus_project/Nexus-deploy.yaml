@@ -1,0 +1,102 @@
+---
+
+- name: install java and net tools
+  hosts: linode
+  tasks:
+    - name: update apt cache
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+    
+    - name: install java 8
+      apt:
+        name: openjdk-8-jre-headless
+        state: present
+    - name: install net tools
+      apt:
+        name: net-tools
+        state: present
+     
+- name: download nexus
+  hosts: linode
+  tasks:
+    - name: check if nexus folder exists
+      stat:
+        path: /opt/nexus
+      register: nexus_folder_check
+    - name: download nexus
+      get_url:
+        url: https://download.sonatype.com/nexus/3/nexus-3.95.1-01-linux-x86_64.tar.gz
+        dest: /opt/nexus.tar.gz
+    
+    - name : unarchive nexus
+      unarchive:
+        src: /opt/nexus.tar.gz
+        dest: /opt/
+        remote_src: yes
+      when: not nexus_folder_check.stat.exists
+    - name: find nexus folder
+      find:
+        paths: /opt/
+        patterns: "nexus-*"
+        file_type: directory
+      register: nexus_folder
+    - debug:
+        msg: "Nexus folder found: {{ nexus_folder}}"
+    
+    - name: rename nexus folder
+      command: mv {{ nexus_folder.files[0].path}} /opt/nexus 
+      when: not nexus_folder_check.stat.exists
+
+- name: create nexus user to own nexus user 
+  hosts: linode
+  tasks:
+
+    - name: ensure nexus group exists
+      group:
+        name: nexus
+        state: present
+    - name: create nexus user
+      user:
+        name: nexus
+        group: nexus
+        state: present
+    - name: change ownership of nexus folder
+      file:
+        path: /opt/nexus
+        owner: nexus
+        group: nexus
+        recurse: yes
+    - name: change ownership of sonatype-work folder
+      file:
+        path: /opt/sonatype-work
+        owner: nexus
+        group: nexus
+        recurse: yes
+
+- name: start nexus with nexus user
+  hosts: linode
+  become: yes
+  become_user: nexus
+  tasks:
+    - name: set run as user to nexus
+      lineinfile:
+        path: /opt/nexus/bin/nexus.rc
+        line: "run_as_user=nexus"
+        create: yes
+      # blockinfile:
+      #    path: /opt/nexus/bin/nexus.rc
+      #    block: |
+      #      run_as_user=nexus
+    - name: start nexus
+      command: /opt/nexus/bin/nexus start
+
+    - name: check if nexus is running
+      shell: "ps aux | grep 'nexus'"
+      register: nexus_status
+    - debug: msg={{nexus_status}}
+    - name: check with netstat if nexus is running on port 8081
+      shell: "sleep 30 && netstat -lnpt | grep 8081"
+      register: nexus_port_status
+    - debug: msg={{nexus_port_status}}
