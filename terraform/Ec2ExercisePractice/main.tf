@@ -1,5 +1,7 @@
 provider "aws" {
   region = "ap-south-1"
+
+
 }
 
 variable "env" {}
@@ -106,7 +108,7 @@ resource "aws_key_pair" "my-pair" {
   
 }
 
-resource "aws_instance" "my-instance" {
+resource "aws_instance" "my-instance-1" {
   
   ami = data.aws_ami.latest_aws_image.id
   instance_type = var.instance_type
@@ -117,12 +119,52 @@ resource "aws_instance" "my-instance" {
   key_name = aws_key_pair.my-pair.key_name
 
     tags = {
-        Name = "${var.env}-instance"
+        Name = "${var.env}-instance-1"
     }
+
 }
 
-output "instance_public_ip" {
-  value = aws_instance.my-instance.public_ip
+resource "aws_instance" "my-instance-2" {
+  
+  ami = data.aws_ami.latest_aws_image.id
+  instance_type = var.instance_type
+  subnet_id = aws_subnet.my-subnet.id
+  vpc_security_group_ids = [aws_security_group.security-group.id]
+
+  associate_public_ip_address = true
+  key_name = aws_key_pair.my-pair.key_name
+
+    tags = {
+        Name = "${var.env}-instance-2"
+    }
+
+}
+
+resource "aws_instance" "my-instance-3" {
+  
+  ami = data.aws_ami.latest_aws_image.id
+  instance_type = "t3.small"
+  subnet_id = aws_subnet.my-subnet.id
+  vpc_security_group_ids = [aws_security_group.security-group.id]
+
+  associate_public_ip_address = true
+  key_name = aws_key_pair.my-pair.key_name
+
+    tags = {
+        Name = "${var.env}-instance-3"
+    }
+
+}
+
+output "instance-1_public_ip" {
+  value = aws_instance.my-instance-1.public_ip
   
 }
 
+output "instance-2_public_ip" {
+  value = aws_instance.my-instance-2.public_ip
+  
+}
+output "instance-3_public_ip" {
+  value = aws_instance.my-instance-3.public_ip
+}
