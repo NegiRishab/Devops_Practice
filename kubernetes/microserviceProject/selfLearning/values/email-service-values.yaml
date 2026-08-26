@@ -1,0 +1,31 @@
+appName: email-service
+appImage: gcr.io/google-samples/microservices-demo/emailservice
+appVersion: v0.8.0
+appReplicas: 2
+containerPort: 8080
+containerEnvVars:
+- name: PORT
+  value: "8080"
+livenessProbe:
+  grpc:
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  grpc:
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+serviceType: ClusterIP
+servicePort: 5000

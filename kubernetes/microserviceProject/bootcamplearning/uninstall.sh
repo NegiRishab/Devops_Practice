@@ -1,0 +1,11 @@
+helm uninstall redis
+helm uninstall email
+helm uninstall product-catalog
+helm uninstall payment
+helm uninstall currency
+helm uninstall shipping
+helm uninstall ad
+helm uninstall recommendation
+helm uninstall checkout
+helm uninstall cart
+helm uninstall frontend

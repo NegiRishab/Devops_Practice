@@ -1,0 +1,106 @@
+---
+
+# this is comign bu his commadn now 
+
+
+# ansible-inventory -i inventory_aws_ec2.yaml --graph
+
+
+# @all:
+#   |--@ungrouped:
+#   |--@aws_ec2:
+#   |  |--ec2-13-126-238-23.ap-south-1.compute.amazonaws.com
+#   |  |--ec2-43-205-112-121.ap-south-1.compute.amazonaws.com
+#   |  |--ec2-13-232-139-137.ap-south-1.compute.amazonaws.com
+
+
+
+# we use  aws_ec2 as the host group name in the inventory file. You can change it to any name you want, but make sure to update the hosts field in the playbook accordingly.
+- name: wait for SSH connection
+  hosts: aws_ec2
+  tasks:
+    - name: wait for SSH to come up
+      wait_for:
+        port: 22
+        delay: 10
+        timeout: 300
+        search_regex: OpenSSH
+        host: "{{ ansible_host | default(inventory_hostname) }}"
+      vars:
+        ansible_connection: local
+        ansible_python_interpreter: /usr/bin/python3
+- name: update apt and cache
+  hosts: aws_ec2
+  become: yes
+  tasks:
+    - name: update apt and cache
+      yum:
+        update_cache: yes
+    - name: install docker
+      yum:
+        name: docker
+        state: present
+
+- name: install docker-compose
+  hosts: aws_ec2
+  tasks:
+    - name: create docker compose directory
+      file:
+        path: ~/.docker/cli-plugins
+        state: directory
+    - name: get architecture of the system
+      command: uname -m
+      register: architecture
+    - name: Install docker-compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{ architecture.stdout }}"
+        dest: ~/.docker/cli-plugins/docker-compose
+        mode: +x
+
+
+- name : start docker service
+  hosts: aws_ec2
+  become: yes
+  tasks:
+    - name: start docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+    - name: add user to docker group
+      user:
+        name: ec2-user
+        state: present
+        groups: docker
+        append: yes
+    - name: Reconnect to the server to apply group changes
+      meta: reset_connection
+
+- name : start docker containers
+  hosts: aws_ec2
+  vars_files:
+    - project-vars
+  tasks:
+    - name: copy docker-compose.yaml to remote server
+      copy:
+        src: docker-compose.yaml
+        dest: /home/ec2-user/docker-compose.yaml
+    - name: install Python3-pip
+      yum:
+        name: python3-pip
+        state: present
+    - name: install Python request module
+      pip:
+        name:
+          - requests
+          - docker  
+          - "urllib3<2"
+        executable: pip3
+    - name : docker login
+      docker_login: 
+        username: "{{ docker_username }}"
+        password: "{{ docker_password }}"
+    - name: start docker containers
+      community.docker.docker_compose_v2:
+        project_src: /home/ec2-user/
+        state: present

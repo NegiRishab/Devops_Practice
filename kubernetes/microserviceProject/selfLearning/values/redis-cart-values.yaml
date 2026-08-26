@@ -1,0 +1,52 @@
+appName: redis-service
+appImage: redis
+appVersion: latest
+appReplicas: 3
+containerPort: 6379
+containerName: redis
+
+livenessProbe:
+  tcpSocket:
+    port: 6379
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: 6379
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+
+persistence:
+  enabled: true
+  storageClass: linode-block-storage-retain
+  size: 10Gi
+  mountPath: /data
+  volumeName: redis-data
+
+headlessService:
+  name: redis-headless
+  port: 6379
+
+writableService:
+  name: redis-service
+  type: ClusterIP
+  port: 13000
+  targetPort: 6379
+
+configMap:
+  volumeName: redis-config
+  mountPath: /scripts
+  defaultMode: 493
