@@ -144,6 +144,7 @@ def DeployOnServer() {
     echo "BACKEND_IMAGE: ${env.BACKEND_IMAGE}"
     echo "FRONTEND_IMAGE: ${env.FRONTEND_IMAGE}"
 
+dir('ansible') {
     withCredentials([
         sshUserPrivateKey(
             credentialsId: 'linode_private_ssh_key',
@@ -152,9 +153,6 @@ def DeployOnServer() {
         )
     ]) {
         sh '''
-        
-            cd ansible
-
             ansible-playbook \
                 -i "${SERVER_IP}," \
                 playbook.yaml \
@@ -165,6 +163,7 @@ def DeployOnServer() {
                 -e "server_ip=${SERVER_IP}"
         '''
     }
+}
 }
 def VersionBump() {
     echo "Version bumping..."
