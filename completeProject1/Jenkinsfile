@@ -2,23 +2,20 @@ def gv
 
 pipeline {
 
-    agent {
-        node {
-            label ''
-            customWorkspace "${env.WORKSPACE}/completeProject1"
-        }
-    }
+    agent any
 
     tools {
         nodejs 'nodejs-22'
     }
-    
+
     stages {
 
         stage('Init') {
             steps {
                 script {
+                     dir('completeProject1') {
                     gv = load 'pipeline.groovy'
+                     }
                     echo "Branch name is ${env.BRANCH_NAME}"
                 }
             }
@@ -27,7 +24,9 @@ pipeline {
         stage('Test') {
             steps {
                 script {
+                    dir('completeProject1') {
                     gv.RunTests()
+                    }
                 }
             }
         }
@@ -43,7 +42,9 @@ pipeline {
                 stage('Creating infra for the application') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.CreateInfrastructure()
+                        }
                         }
                     }
                 }
@@ -51,7 +52,9 @@ pipeline {
                 stage('Increment backend version') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.IncrementBackendVersion()
+                        }
                         }
                     }
                 }
@@ -59,7 +62,9 @@ pipeline {
                 stage('Build backend image') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.BuildBackendImage()
+                        }
                         }
                     }
                 }
@@ -67,7 +72,9 @@ pipeline {
                 stage('Increment frontend version') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.IncrementFrontendVersion()
+                        }
                         }
                     }
                 }
@@ -75,7 +82,9 @@ pipeline {
                 stage('Build frontend image') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.BuildFrontendImage()
+                        }
                         }
                     }
                 }
@@ -83,7 +92,9 @@ pipeline {
                 stage('Deploy to server using Ansible') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.DeployOnServer()
+                        }
                         }
                     }
                 }
@@ -91,7 +102,9 @@ pipeline {
                 stage('Version bump') {
                     steps {
                         script {
+                            dir('completeProject1') {
                             gv.VersionBump()
+                        }
                         }
                     }
                 }
