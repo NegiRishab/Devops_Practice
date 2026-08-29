@@ -123,7 +123,7 @@ def BuildFrontendImage() {
                 --password-stdin
 
             docker build \
-                --build-arg VITE_API_URL="http://${SERVER_IP}:5000" \
+                --build-arg VITE_API_URL="http://${SERVER_IP}:5000/api" \
                 -t "ankit42098/taskboard-frontend:${BRANCH_NAME}-${FRONTEND_VERSION}" \
                 ./frontend
 
