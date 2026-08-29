@@ -34,7 +34,7 @@ pipeline {
         stage('Main Pipeline') {
 
             when {
-                branch 'project-1'
+                branch 'practice-project-1'
             }
 
             stages {
