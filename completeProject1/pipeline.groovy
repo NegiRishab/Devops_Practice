@@ -169,6 +169,7 @@ def VersionBump() {
     ]) {
         sh '''
             git config --global user.name "Jenkins"
+            
             git config --global user.email "jenkins@taskboard.com"
 
             git remote set-url origin \
