@@ -4,6 +4,7 @@ pipeline {
 
     agent {
         node {
+            label ''
             customWorkspace "${env.WORKSPACE}/completeProject1"
         }
     }
@@ -11,7 +12,7 @@ pipeline {
     tools {
         nodejs 'nodejs-22'
     }
-
+    
     stages {
 
         stage('Init') {
