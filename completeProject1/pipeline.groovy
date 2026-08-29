@@ -152,6 +152,7 @@ def DeployOnServer() {
         )
     ]) {
         sh '''
+        
             cd ansible
 
             ansible-playbook \
