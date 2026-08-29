@@ -1,0 +1,49 @@
+# Ansible
+
+*.retry
+
+# Ansible Vault
+
+.vault_pass
+vault_password_file
+
+# Ansible temporary files
+
+*.tmp
+*.log
+
+# Local inventory files
+
+hosts
+inventory.ini
+
+# Local variables and secrets
+
+project-vars
+project-vars.yml
+project-vars.yaml
+
+# SSH keys
+
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# Environment files
+
+.env
+.env.*
+
+# VS Code
+
+.vscode/
+
+# macOS
+
+.DS_Store
+
+# Python
+
+**pycache**/
+*.pyc

@@ -1,0 +1,38 @@
+version: "3.9" 
+
+services:
+  frontend:
+    image: "${FRONTEND_IMAGE}"
+    container_name: frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+   image: "${BACKEND_IMAGE}"
+   ports:
+     - "5000:5000"
+   container_name: backend
+   restart: unless-stopped
+   environment:
+     - MONGODB_URI=mongodb://mongodb:27017/taskboard
+     - PORT=5000
+     - NODE_ENV=production
+     - CORS_ORIGIN=http://${SERVER_IP}
+   depends_on:
+     - mongodb
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    container_name: mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+   mongodb_data:
+   

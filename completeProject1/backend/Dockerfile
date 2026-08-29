@@ -1,14 +1,20 @@
-# FROM node:20-alpine
 
-# WORKDIR /app
+FROM  node:20-alpine
 
-# COPY package.json package-lock.json ./
-# RUN npm ci --omit=dev
+WORKDIR /app 
 
-# COPY src ./src
+COPY package.json package-lock.json ./
 
-# EXPOSE 5000
+RUN npm ci --omit=dev
 
-# CMD ["npm", "run", "start"]
+COPY src ./src
+
+EXPOSE 5000 
+
+CMD [ "npm","run","start" ]
+
+
+
+
 
 

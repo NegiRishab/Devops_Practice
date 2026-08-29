@@ -1,0 +1,87 @@
+--- 
+
+- name: Wait for SSH connection
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Wait until server is ready for Ansible
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 300
+        sleep: 5
+
+- name: update apt and cache
+  hosts: all
+  become: true
+  tasks:
+    - name: update apt and cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: install docker
+      apt:
+        name: docker.io
+        state: present
+
+- name: install docker-compose
+  hosts: all
+  tasks:
+    - name: create docker compose directory
+      file:
+        path: /root/.docker/cli-plugins
+        state: directory
+
+    - name: get architecture of the system
+      command: uname -m
+      register: architecture
+      changed_when: false
+
+    - name: Install docker-compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{ architecture.stdout }}"
+        dest: /root/.docker/cli-plugins/docker-compose
+        mode: +x
+
+- name : start docker service
+  hosts: all
+  become: true
+  tasks:
+    - name: start docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+- name : start docker containers
+  hosts: all
+  tasks:
+    - name: Create application directory
+      file:
+        path: /root/taskboard
+        state: directory
+        mode: "0755"
+
+    - name: Generate environment file
+      template:
+        src: .env.j2
+        dest: /root/taskboard/.env
+        mode: "0600"
+
+    - name: Generate Docker Compose file
+      template:
+        src: docker-compose.yml.j2
+        dest: /root/taskboard/docker-compose.yaml
+        mode: "0644"
+
+    # - name : docker login
+    #   docker_login: 
+    #   community.docker.docker_login:
+    #     username: "{{ docker_username }}"
+    #     password: "{{ docker_password }}"
+
+    - name: start docker containers
+      community.docker.docker_compose_v2:
+        project_src: /root/taskboard
+        state: present

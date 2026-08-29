@@ -40,6 +40,20 @@
     - name: reconnect to server to apply group changes
       meta: reset_connection
 
+- name: Get Docker socket group ID
+  hosts: linode
+  become: yes
+  tasks:
+
+    - name: Get Docker socket group ID
+      ansible.builtin.stat:
+        path: /var/run/docker.sock
+      register: docker_socket
+
+    - name: Show Docker socket group ID
+      ansible.builtin.debug:
+        msg: "Docker socket GID: {{ docker_socket.stat.gid }}"
+
 - name: pull jenkins image in linode server and start 
   hosts: linode
   become_user: jenkins_user
@@ -63,6 +77,27 @@
           - "50000:50000"
         volumes:
           - jenkins_home:/var/jenkins_home
+          - /var/run/docker.sock:/var/run/docker.sock
+
+        groups:
+          - "{{ docker_socket.stat.gid }}"
+
+- name: Install Docker CLI inside Jenkins container
+  hosts: linode
+  become: yes
+
+  tasks:
+    - name: Update apt inside Jenkins container
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: apt-get update
+        user: root
+
+    - name: Install Docker CLI inside Jenkins container
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: apt-get install -y docker.io
+        user: root
 
       
       

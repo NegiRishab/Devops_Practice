@@ -1,0 +1,100 @@
+def gv
+
+pipeline {
+
+    agent {
+        node {
+            customWorkspace "${env.WORKSPACE}/completeProject1"
+        }
+    }
+
+    tools {
+        nodejs 'nodejs-22'
+    }
+
+    stages {
+
+        stage('Init') {
+            steps {
+                script {
+                    gv = load 'pipeline.groovy'
+                    echo "Branch name is ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    gv.RunTests()
+                }
+            }
+        }
+
+        stage('Main Pipeline') {
+
+            when {
+                branch 'project-1'
+            }
+
+            stages {
+
+                stage('Creating infra for the application') {
+                    steps {
+                        script {
+                            gv.CreateInfrastructure()
+                        }
+                    }
+                }
+
+                stage('Increment backend version') {
+                    steps {
+                        script {
+                            gv.IncrementBackendVersion()
+                        }
+                    }
+                }
+
+                stage('Build backend image') {
+                    steps {
+                        script {
+                            gv.BuildBackendImage()
+                        }
+                    }
+                }
+
+                stage('Increment frontend version') {
+                    steps {
+                        script {
+                            gv.IncrementFrontendVersion()
+                        }
+                    }
+                }
+
+                stage('Build frontend image') {
+                    steps {
+                        script {
+                            gv.BuildFrontendImage()
+                        }
+                    }
+                }
+
+                stage('Deploy to server using Ansible') {
+                    steps {
+                        script {
+                            gv.DeployOnServer()
+                        }
+                    }
+                }
+
+                stage('Version bump') {
+                    steps {
+                        script {
+                            gv.VersionBump()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
