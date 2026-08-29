@@ -82,7 +82,7 @@
         groups:
           - "{{ docker_socket.stat.gid }}"
 
-- name: Install Docker CLI inside Jenkins container
+- name: Install DevOps tools inside Jenkins container
   hosts: linode
   become: yes
 
@@ -93,13 +93,50 @@
         command: apt-get update
         user: root
 
-    - name: Install Docker CLI inside Jenkins container
+    - name: Install Docker CLI, Ansible and required packages
       community.docker.docker_container_exec:
         container: jenkins
-        command: apt-get install -y docker.io
+        command: >
+          apt-get install -y
+          docker.io
+          ansible
+          wget
+          unzip
         user: root
 
-      
+    - name: Download Terraform
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: >
+          wget -q
+          https://releases.hashicorp.com/terraform/1.13.1/terraform_1.13.1_linux_amd64.zip
+          -O /tmp/terraform.zip
+        user: root
+
+    - name: Extract Terraform
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: >
+          unzip -o /tmp/terraform.zip -d /usr/local/bin/
+        user: root
+
+    - name: Verify Terraform
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: terraform --version
+        user: root
+
+    - name: Verify Ansible
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: ansible --version
+        user: root
+
+    - name: Verify Docker
+      community.docker.docker_container_exec:
+        container: jenkins
+        command: docker --version
+        user: root
       
 
 

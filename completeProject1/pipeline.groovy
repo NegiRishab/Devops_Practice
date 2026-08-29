@@ -137,7 +137,6 @@ def BuildFrontendImage() {
     }
 }
 
-
 def DeployOnServer() {
     echo "Starting deployment..."
 
@@ -145,18 +144,27 @@ def DeployOnServer() {
     echo "BACKEND_IMAGE: ${env.BACKEND_IMAGE}"
     echo "FRONTEND_IMAGE: ${env.FRONTEND_IMAGE}"
 
-    sh '''
-        cd ansible
+    withCredentials([
+        sshUserPrivateKey(
+            credentialsId: 'linode_private_ssh_key',
+            keyFileVariable: 'SSH_KEY',
+            usernameVariable: 'SSH_USER'
+        )
+    ]) {
+        sh '''
+            cd ansible
 
-        ansible-playbook \
-            -i "${SERVER_IP}," \
-            playbook.yaml \
-            -e "frontend_image=${FRONTEND_IMAGE}" \
-            -e "backend_image=${BACKEND_IMAGE}" \
-            -e "server_ip=${SERVER_IP}"
-    '''
+            ansible-playbook \
+                -i "${SERVER_IP}," \
+                playbook.yaml \
+                -u "${SSH_USER}" \
+                --private-key "${SSH_KEY}" \
+                -e "frontend_image=${FRONTEND_IMAGE}" \
+                -e "backend_image=${BACKEND_IMAGE}" \
+                -e "server_ip=${SERVER_IP}"
+        '''
+    }
 }
-
 def VersionBump() {
     echo "Version bumping..."
 
