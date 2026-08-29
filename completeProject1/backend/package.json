@@ -1,6 +1,6 @@
 {
   "name": "taskboard-backend",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "description": "Task Board API",
   "main": "src/server.js",
   "scripts": {
