@@ -144,8 +144,8 @@ def DeployOnServer() {
     echo "BACKEND_IMAGE: ${env.BACKEND_IMAGE}"
     echo "FRONTEND_IMAGE: ${env.FRONTEND_IMAGE}"
 
-dir('ansible') {
-    withCredentials([
+  dir('ansible') {
+     withCredentials([
         sshUserPrivateKey(
             credentialsId: 'linode_private_ssh_key',
             keyFileVariable: 'SSH_KEY',
@@ -165,6 +165,7 @@ dir('ansible') {
     }
 }
 }
+
 def VersionBump() {
     echo "Version bumping..."
 
