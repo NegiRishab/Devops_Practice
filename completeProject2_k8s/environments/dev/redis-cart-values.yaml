@@ -1,0 +1,36 @@
+appName: redis-service
+appImage: redis
+appVersion: latest
+appReplicas: 2
+containerPort: 6379
+containerName: redis
+containerEnvVars: []
+livenessProbe:
+  tcpSocket:
+    port: 6379
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  tcpSocket:
+    port: 6379
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+volumeMounts:
+  - name: redis-storage
+    mountPath: /data
+volumes:
+  - name: redis-storage
+    emptyDir: {}
+serviceType: ClusterIP
+servicePort: 13000

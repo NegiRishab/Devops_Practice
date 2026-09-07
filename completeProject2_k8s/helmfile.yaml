@@ -1,0 +1,64 @@
+
+environments:
+  dev: {}
+  stage: {}
+  prod: {}
+
+--- 
+
+releases:
+
+  - name: redis
+    chart: ./charts/redis
+    values:
+      - ./environments/{{ .Environment.Name }}/redis-cart-values.yaml
+
+  - name: email
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/email-service-values.yaml
+
+  - name: product-catalog
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/product-catalog-service-values.yaml
+
+  - name: payment
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/payment-service-values.yaml
+
+  - name: currency
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/currency-service-values.yaml
+
+  - name: shipping
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/shipping-service-values.yaml
+
+  - name: ad
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/ad-service-values.yaml
+
+  - name: recommendation
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/recommendation-service-values.yaml
+
+  - name: checkout
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/checkout-service-values.yaml
+
+  - name: cart
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/cart-service-values.yaml
+
+  - name: frontend
+    chart: ./charts/microservices
+    values:
+      - ./environments/{{ .Environment.Name }}/frontend-service-values.yaml

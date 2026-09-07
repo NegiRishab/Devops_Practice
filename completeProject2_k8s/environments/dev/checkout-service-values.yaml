@@ -1,0 +1,43 @@
+appName: checkout-service
+appImage: gcr.io/google-samples/microservices-demo/checkoutservice
+appVersion: v0.8.0
+appReplicas: 1
+containerPort: 5050
+containerEnvVars:
+- name: PORT
+  value: "5050"
+- name: PRODUCT_CATALOG_SERVICE_ADDR
+  value: product-catalog-service:7000
+- name: SHIPPING_SERVICE_ADDR
+  value: shipping-service:10000
+- name: CURRENCY_SERVICE_ADDR
+  value: currency-service:9000
+- name: CART_SERVICE_ADDR
+  value: cart-service:12000
+- name: EMAIL_SERVICE_ADDR
+  value: email-service:5000
+- name: PAYMENT_SERVICE_ADDR
+  value: payment-service:8000
+livenessProbe:
+  grpc:
+    port: 5050
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  grpc:
+    port: 5050
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+serviceType: ClusterIP
+servicePort: 14000
