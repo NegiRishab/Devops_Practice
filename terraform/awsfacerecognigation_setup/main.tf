@@ -6,11 +6,10 @@ terraform {
     }
   }
 }
+
 provider "aws" {
- region = var.aws_region
+  region = var.aws_region
 }
-
-
 
 resource "aws_iam_policy" "face_recognition" {
   name = "student-face-recognition-policy"
@@ -23,6 +22,7 @@ resource "aws_iam_policy" "face_recognition" {
         Effect = "Allow"
 
         Action = [
+          "rekognition:DetectFaces",
           "rekognition:IndexFaces",
           "rekognition:SearchFacesByImage",
           "rekognition:DeleteFaces",
@@ -36,7 +36,6 @@ resource "aws_iam_policy" "face_recognition" {
 }
 
 resource "null_resource" "rekognition_collection" {
-
   triggers = {
     collection_id = var.collection_id
     region        = var.aws_region

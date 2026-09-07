@@ -1,144 +1,148 @@
---- 
 
-- name: Server Update and install Docker
-  hosts: linode
-  become: yes 
+---
+
+# ============================================================
+# 1. Install Docker on AWS EC2
+# ============================================================
+
+- name: Install Docker on AWS EC2
+  hosts: aws
+  become: yes
+
   tasks:
-    - name : update apt and cache 
-      apt: 
+
+    - name: Update DNF cache
+      ansible.builtin.dnf:
         update_cache: yes
-        force_apt_get: yes
-        cache_valid_time: 3600
-    
-    - name: install Docker
-      apt: 
-         name: docker.io
-         state: present
 
-- name: Start docker and add user to the docker group
-  hosts: linode
+    - name: Install Docker
+      ansible.builtin.dnf:
+        name: docker
+        state: present
+
+
+# ============================================================
+# 2. Configure Docker
+# ============================================================
+
+- name: Configure Docker
+  hosts: aws
   become: yes
-  tasks:
-    - name: run docker 
-      systemd:
-       name: docker
-       state: started
-       enabled: yes
 
-    - name: create a docker group
-      group: 
-       name: docker
-       state: present
-
-    - name: create jenkins user 
-      user:
-       name: jenkins_user
-       groups: docker
-       append: yes
-       state: present
-
-    - name: reconnect to server to apply group changes
-      meta: reset_connection
-
-- name: Get Docker socket group ID
-  hosts: linode
-  become: yes
   tasks:
 
-    - name: Get Docker socket group ID
+    - name: Start and enable Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create Docker group
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add ec2-user to Docker group
+      ansible.builtin.user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    - name: Reconnect to server to apply Docker group changes
+      ansible.builtin.meta:
+        reset_connection
+
+
+# ============================================================
+# 3. Get Docker Socket GID
+# ============================================================
+
+- name: Get Docker socket information
+  hosts: aws
+  become: yes
+
+  tasks:
+
+    - name: Check Docker socket
       ansible.builtin.stat:
         path: /var/run/docker.sock
       register: docker_socket
 
-    - name: Show Docker socket group ID
+    - name: Display Docker socket GID
       ansible.builtin.debug:
         msg: "Docker socket GID: {{ docker_socket.stat.gid }}"
 
-- name: pull jenkins image in linode server and start 
-  hosts: linode
-  become_user: jenkins_user
-  tasks:
-   - name: pull jenkins image
-     community.docker.docker_image:
-        name: jenkins/jenkins
-        tag: lts-jdk21
-        source: pull
-   - name: Create Jenkins volume
-     community.docker.docker_volume:
-        name: jenkins_home
-   - name: Run Jenkins container
-     community.docker.docker_container:
-        name: jenkins
-        image: jenkins/jenkins:lts-jdk21
-        state: started
-        restart_policy: unless-stopped
-        ports:
-          - "8080:8080"
-          - "50000:50000"
-        volumes:
-          - jenkins_home:/var/jenkins_home
-          - /var/run/docker.sock:/var/run/docker.sock
 
-        groups:
-          - "{{ docker_socket.stat.gid }}"
+# ============================================================
+# 4. Install and Run Jenkins
+# ============================================================
 
-- name: Install DevOps tools inside Jenkins container
-  hosts: linode
+- name: Install and Run Jenkins
+  hosts: aws
   become: yes
 
   tasks:
-    - name: Update apt inside Jenkins container
+
+    - name: Pull Jenkins LTS JDK 21 image
+      community.docker.docker_image:
+        name: jenkins/jenkins
+        tag: lts-jdk21
+        source: pull
+
+    - name: Create Jenkins persistent volume
+      community.docker.docker_volume:
+        name: jenkins_home
+
+    - name: Run Jenkins container
+      community.docker.docker_container:
+        name: jenkins
+        image: jenkins/jenkins:lts-jdk21
+
+        state: started
+
+        restart_policy: unless-stopped
+
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+
+        volumes:
+          # Jenkins persistent data
+          - jenkins_home:/var/jenkins_home
+
+          # Docker-outside-of-Docker
+          - /var/run/docker.sock:/var/run/docker.sock
+
+        # Give Jenkins access to the host Docker socket group
+        groups:
+          - "{{ docker_socket.stat.gid }}"
+
+
+# ============================================================
+# 5. Install Docker CLI inside Jenkins
+# ============================================================
+
+- name: Install Docker CLI inside Jenkins
+  hosts: aws
+  become: yes
+
+  tasks:
+
+    - name: Update package repository inside Jenkins
       community.docker.docker_container_exec:
         container: jenkins
         command: apt-get update
         user: root
 
-    - name: Install Docker CLI, Ansible and required packages
+    - name: Install Docker CLI
       community.docker.docker_container_exec:
         container: jenkins
-        command: >
-          apt-get install -y
-          docker.io
-          ansible
-          wget
-          unzip
+        command: apt-get install -y docker.io
         user: root
 
-    - name: Download Terraform
-      community.docker.docker_container_exec:
-        container: jenkins
-        command: >
-          wget -q
-          https://releases.hashicorp.com/terraform/1.13.1/terraform_1.13.1_linux_amd64.zip
-          -O /tmp/terraform.zip
-        user: root
-
-    - name: Extract Terraform
-      community.docker.docker_container_exec:
-        container: jenkins
-        command: >
-          unzip -o /tmp/terraform.zip -d /usr/local/bin/
-        user: root
-
-    - name: Verify Terraform
-      community.docker.docker_container_exec:
-        container: jenkins
-        command: terraform --version
-        user: root
-
-    - name: Verify Ansible
-      community.docker.docker_container_exec:
-        container: jenkins
-        command: ansible --version
-        user: root
-
-    - name: Verify Docker
+    - name: Verify Docker CLI
       community.docker.docker_container_exec:
         container: jenkins
         command: docker --version
         user: root
-      
 
-
-
-  
