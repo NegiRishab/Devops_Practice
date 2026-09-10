@@ -1,0 +1,15 @@
+# Node
+node_modules/
+coverage/
+build/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs / OS
+*.log
+.DS_Store
+.idea/
+.vscode/

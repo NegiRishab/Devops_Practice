@@ -1,0 +1,139 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #e8e8e8;
+    padding: 2rem 1rem;
+}
+
+.container {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: #e94560;
+    margin-bottom: 0.5rem;
+}
+
+header p {
+    color: #a0a0b0;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.field {
+    margin-bottom: 1rem;
+}
+
+.field label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+    color: #b0b0c0;
+}
+
+.field input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-size: 1rem;
+}
+
+.field input:focus {
+    outline: none;
+    border-color: #e94560;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 0.75rem;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+button[type="submit"]:hover {
+    background: #ff6b6b;
+}
+
+.message {
+    margin-top: 1rem;
+    padding: 0.65rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.message.success {
+    background: rgba(46, 213, 115, 0.2);
+    color: #2ed573;
+}
+
+.message.error {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+.hero-list {
+    list-style: none;
+}
+
+.hero-list li {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hero-list li:last-child {
+    border-bottom: none;
+}
+
+.hero-list li.empty {
+    color: #888;
+    justify-content: center;
+}
+
+.hero-name {
+    font-weight: 600;
+    color: #fff;
+}
+
+.hero-power {
+    color: #e94560;
+    font-size: 0.9rem;
+}

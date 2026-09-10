@@ -1,0 +1,33 @@
+# compiled output
+dist/
+build/
+tmp/
+out-tsc/
+
+# dependencies
+node_modules/
+my-app/node_modules/
+api/node_modules/
+my-app/build/
+
+# env and secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# logs and coverage
+coverage/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# IDE / OS
+.idea/
+.vscode/
+.project
+.classpath
+.settings/
+.DS_Store
+Thumbs.db
+.history/

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Todos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0f1419;
+        --surface: #1a2332;
+        --surface-hover: #243044;
+        --border: #2d3a4d;
+        --text: #e8edf4;
+        --muted: #8b9cb3;
+        --accent: #3d9cf0;
+        --accent-hover: #5aadf5;
+        --danger: #f07178;
+        --danger-hover: #f58a90;
+        --success: #7fd99a;
+        --radius: 12px;
+        --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: radial-gradient(
+            ellipse 120% 80% at 50% -20%,
+            rgba(61, 156, 240, 0.18),
+            transparent 50%
+          ),
+          var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      .wrap {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 2.5rem 1.25rem 4rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .composer {
+        display: flex;
+        gap: 0.65rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .composer input {
+        flex: 1;
+        min-width: 0;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.95rem;
+      }
+
+      .composer input::placeholder {
+        color: var(--muted);
+      }
+
+      .composer input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(61, 156, 240, 0.2);
+      }
+
+      .btn {
+        border: none;
+        border-radius: 10px;
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn-primary {
+        padding: 0.75rem 1.15rem;
+        background: var(--accent);
+        color: #0a0e14;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .list {
+        list-style: none;
+        margin: 0;
+        padding: 0.5rem 0;
+        min-height: 120px;
+      }
+
+      .list li {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--border);
+        animation: fadeIn 0.25s ease;
+      }
+
+      .list li:last-child {
+        border-bottom: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .check {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: var(--success);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .title-wrap {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .title {
+        font-size: 0.95rem;
+        word-break: break-word;
+      }
+
+      .title.done {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+
+      .title input {
+        width: 100%;
+        padding: 0.4rem 0.5rem;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.95rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.35rem;
+        flex-shrink: 0;
+      }
+
+      .btn-icon {
+        padding: 0.45rem 0.55rem;
+        background: transparent;
+        color: var(--muted);
+        border-radius: 8px;
+      }
+
+      .btn-icon:hover {
+        background: var(--surface-hover);
+        color: var(--text);
+      }
+
+      .btn-danger:hover {
+        color: var(--danger);
+        background: rgba(240, 113, 120, 0.12);
+      }
+
+      .empty,
+      .error,
+      .loading {
+        padding: 2rem 1.25rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .error {
+        color: var(--danger);
+      }
+
+      .loading {
+        color: var(--accent);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Todos</h1>
+        <p>Create, complete, edit, and delete — stored in MongoDB.</p>
+      </header>
+
+      <div class="card">
+        <form class="composer" id="form-add" autocomplete="off">
+          <label class="sr-only" for="input-new">New task</label>
+          <input
+            id="input-new"
+            type="text"
+            maxlength="500"
+            placeholder="What needs doing?"
+            required
+          />
+          <button type="submit" class="btn btn-primary" id="btn-add">Add</button>
+        </form>
+        <ul class="list" id="list" aria-live="polite"></ul>
+        <div class="empty" id="empty" hidden>No tasks yet. Add one above.</div>
+        <div class="loading" id="loading">Loading…</div>
+        <div class="error" id="error" hidden></div>
+      </div>
+    </div>
+
+    <script>
+      const API = "/api/todos";
+
+      const listEl = document.getElementById("list");
+      const emptyEl = document.getElementById("empty");
+      const loadingEl = document.getElementById("loading");
+      const errorEl = document.getElementById("error");
+      const formAdd = document.getElementById("form-add");
+      const inputNew = document.getElementById("input-new");
+      const btnAdd = document.getElementById("btn-add");
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.hidden = !msg;
+      }
+
+      function setLoading(on) {
+        loadingEl.hidden = !on;
+        listEl.hidden = on;
+        emptyEl.hidden = true;
+      }
+
+      async function fetchJSON(url, options) {
+        const res = await fetch(url, {
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          ...options,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || res.statusText || "Request failed");
+        }
+        return data;
+      }
+
+      function render(todos) {
+        listEl.innerHTML = "";
+        if (!todos.length) {
+          emptyEl.hidden = false;
+          listEl.hidden = true;
+          return;
+        }
+        emptyEl.hidden = true;
+        listEl.hidden = false;
+
+        for (const t of todos) {
+          const li = document.createElement("li");
+          li.dataset.id = t._id;
+
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.className = "check";
+          cb.checked = !!t.completed;
+          cb.setAttribute("aria-label", t.completed ? "Mark incomplete" : "Mark complete");
+          cb.addEventListener("change", () => toggleComplete(t._id, cb.checked));
+
+          const titleWrap = document.createElement("div");
+          titleWrap.className = "title-wrap";
+
+          const span = document.createElement("span");
+          span.className = "title" + (t.completed ? " done" : "");
+          span.textContent = t.title;
+          titleWrap.appendChild(span);
+
+          const actions = document.createElement("div");
+          actions.className = "actions";
+
+          const btnEdit = document.createElement("button");
+          btnEdit.type = "button";
+          btnEdit.className = "btn btn-icon";
+          btnEdit.setAttribute("aria-label", "Edit");
+          btnEdit.textContent = "Edit";
+          btnEdit.addEventListener("click", () => startEdit(li, t));
+
+          const btnDel = document.createElement("button");
+          btnDel.type = "button";
+          btnDel.className = "btn btn-icon btn-danger";
+          btnDel.setAttribute("aria-label", "Delete");
+          btnDel.textContent = "Delete";
+          btnDel.addEventListener("click", () => removeTodo(t._id));
+
+          actions.append(btnEdit, btnDel);
+          li.append(cb, titleWrap, actions);
+          listEl.appendChild(li);
+        }
+      }
+
+      async function loadTodos() {
+        setLoading(true);
+        showError("");
+        try {
+          const todos = await fetchJSON(API);
+          render(todos);
+        } catch (e) {
+          showError(e.message);
+          listEl.innerHTML = "";
+          listEl.hidden = true;
+          emptyEl.hidden = true;
+        } finally {
+          loadingEl.hidden = true;
+        }
+      }
+
+      formAdd.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const title = inputNew.value.trim();
+        if (!title) return;
+        btnAdd.disabled = true;
+        showError("");
+        try {
+          await fetchJSON(API, { method: "POST", body: JSON.stringify({ title }) });
+          inputNew.value = "";
+          await loadTodos();
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          btnAdd.disabled = false;
+          inputNew.focus();
+        }
+      });
+
+      async function toggleComplete(id, completed) {
+        showError("");
+        try {
+          await fetchJSON(`${API}/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ completed }),
+          });
+          await loadTodos();
+        } catch (e) {
+          showError(e.message);
+          await loadTodos();
+        }
+      }
+
+      function startEdit(li, todo) {
+        const titleWrap = li.querySelector(".title-wrap");
+        const span = titleWrap.querySelector(".title");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.maxLength = 500;
+        input.value = todo.title;
+        titleWrap.replaceChild(input, span);
+        input.focus();
+        input.select();
+
+        const save = async () => {
+          const title = input.value.trim();
+          if (!title) {
+            await loadTodos();
+            return;
+          }
+          if (title === todo.title) {
+            titleWrap.replaceChild(span, input);
+            return;
+          }
+          showError("");
+          try {
+            await fetchJSON(`${API}/${todo._id}`, {
+              method: "PATCH",
+              body: JSON.stringify({ title }),
+            });
+            await loadTodos();
+          } catch (e) {
+            showError(e.message);
+            await loadTodos();
+          }
+        };
+
+        input.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            save();
+          }
+          if (ev.key === "Escape") {
+            titleWrap.replaceChild(span, input);
+          }
+        });
+        input.addEventListener("blur", save);
+      }
+
+      async function removeTodo(id) {
+        if (!confirm("Delete this task?")) return;
+        showError("");
+        try {
+          await fetchJSON(`${API}/${id}`, { method: "DELETE" });
+          await loadTodos();
+        } catch (e) {
+          showError(e.message);
+        }
+      }
+
+      loadTodos();
+    </script>
+  </body>
+</html>

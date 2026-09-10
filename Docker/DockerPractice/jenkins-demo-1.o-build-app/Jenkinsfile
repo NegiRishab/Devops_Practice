@@ -1,0 +1,155 @@
+// def gv
+
+// pipeline {   
+//     agent any
+//     tools {
+//         maven 'Maven'
+//     }
+//     stages {
+//         stage("init") {
+//             steps {
+//                 script {
+//                     gv = load "script.groovy"
+//                 }
+//             }
+//         }
+//         stage("build jar") {
+//             steps {
+//                 script {
+//                     gv.buildJar()
+
+//                 }
+//             }
+//         }
+
+//         stage("build image") {
+//             steps {
+//                 script {
+//                     gv.buildImage()
+//                 }
+//             }
+//         }
+
+//         stage("deploy") {
+//             steps {
+//                 script {
+//                     gv.deployApp()
+//                 }
+//             }
+//         }               
+//     }
+// } 
+
+
+
+
+
+def gv   // declare variable
+
+pipeline {   
+    agent any
+
+    tools {
+        maven 'maven-3.9'
+    }
+
+    parameters {
+        string(name: 'NEW_VERSION', defaultValue: '2.0', description: 'Version to be built and deployed')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run tests before building the image')
+    }
+
+    stages {
+
+        stage("init") {
+            steps {
+                script {
+                    gv = load "script.groovy"
+                    gv.init()
+
+                    // FIX: use env.BRANCH_NAME safely
+                    echo "deploying to this branch ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage("increment version") {
+            steps {   // ❌ was 'satge'
+                script {
+                    echo "incrementing version number and building the jar file..."
+
+                    // Keep Maven parsedVersion placeholders literal for Maven (not shell vars)
+                    sh '''
+                    mvn build-helper:parse-version versions:set \
+                    -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}' \
+                    versions:commit
+                    '''
+
+                    // Read version from pom.xml
+                    def pom = readFile('pom.xml')
+                    def matcher = pom =~ /<version>(.+)<\\/version>/
+
+                    if (matcher.find()) {
+                        def newVersion = matcher.group(1)
+                        echo "New version is ${newVersion}-${env.BUILD_NUMBER}"
+                        env.IMAGE_NAME = "${newVersion}-${env.BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+
+        stage("build jar") {
+            when {
+                expression { env.BRANCH_NAME == 'main' } 
+              }
+            steps {
+                script {
+                    gv.buildJar()
+                }
+            }
+        }
+
+        stage("build image") {
+            when {
+                expression { env.BRANCH_NAME == 'main' } 
+            }
+            steps {
+                script {
+                    gv.buildImage()
+                }
+            }
+        }
+
+        stage("deploy") {
+            steps {
+                script {
+                    gv.deployApp()
+                }
+            }
+        }
+
+        stage("git credentials") {
+            when {
+                expression { env.BRANCH_NAME == 'main' }
+            }
+            steps {
+                script {
+                    withCredentials([gitUsernamePassword(credentialsId: 'e37eea97-aab6-4db9-a0a5-95f9fd5e20e9', gitToolName: 'Default')]) {
+                        sh '''
+                        git config user.email "rishabhvicky98@gmail.com"
+                        git config user.name "rishabh"
+                        # Stage only version file changes, not build artifacts
+                        git add pom.xml
+                        if ! git diff --cached --quiet; then
+                          git commit -m "Updated version to ${IMAGE_NAME}"
+                          git push origin HEAD:main
+                        else
+                          echo "No changes to commit"
+                        fi
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

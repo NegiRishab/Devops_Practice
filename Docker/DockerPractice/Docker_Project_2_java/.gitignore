@@ -1,0 +1,20 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+*.iml
+
+# Env
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+*.log

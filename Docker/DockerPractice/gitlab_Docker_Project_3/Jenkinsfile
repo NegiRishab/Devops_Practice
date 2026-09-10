@@ -1,0 +1,71 @@
+def gv
+
+pipeline {
+    agent any
+    tools {
+        maven 'maven-3.9'
+        nodejs 'node-22'
+    }
+
+    stages {
+        stage('Init') {
+            steps {
+                script {
+                    gv = load 'pipeline.groovy'
+                }
+            }
+        }
+        stage('Increment backend version') {
+            steps {
+                script {
+                    gv.incrementBackendVersion()
+                }
+            }
+        }
+
+        stage('Backend Docker image') {
+            steps {
+                script {
+                    gv.backendImageBuild()
+                }
+            }
+        }
+        stage('Increment frontend version') {
+            steps {
+                script {
+                    gv.incrementFrontendVersion()
+                }
+            }
+        }
+
+        stage('Frontend Docker image') {
+            steps {
+                script {
+                    gv.frontendImageBuild()
+                }
+            }
+        }
+
+        stage('Deploy on EC2') {
+            when {
+                expression { return env.BRANCH_NAME == 'main' }
+            }
+            steps {
+                script {
+                    gv.deployContainers()
+                }
+            }
+        }
+
+        stage('Version Bump') {
+            when {
+                expression { return env.BRANCH_NAME == 'main' }
+            }
+            steps {
+                script {
+                    gv.versionBump()
+                }
+            }
+    }
+}
+}
