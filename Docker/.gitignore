@@ -1,18 +1,29 @@
 # Node
 node_modules/
+**/node_modules/
 dist/
 build/
-coverage/
 
-# Env
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+
+# Secrets
 .env
 .env.*
 !.env.example
+*.pem
+*.key
 
 # Logs / OS / editor
 *.log
-npm-debug.log*
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+*.iml
+.classpath
+.project
+.settings/

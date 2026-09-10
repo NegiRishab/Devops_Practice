@@ -1,0 +1,32 @@
+# Local providers and modules
+.terraform/
+.terraform.tfstate.lock.info
+
+# State (never commit)
+*.tfstate
+*.tfstate.*
+
+# Variable files often contain secrets; keep examples
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!example.tfvars
+
+# Crash and override files
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets
+*.pem
+*.key
+id_rsa
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,17 +1,15 @@
-# Node
-node_modules/
-dist/
-build/
-coverage/
+# Local Prometheus / Grafana data
+data/
+*.db
+*.wal
 
-# Env
+# Secrets
 .env
 .env.*
 !.env.example
 
 # Logs / OS / editor
 *.log
-npm-debug.log*
 .DS_Store
 Thumbs.db
 .idea/

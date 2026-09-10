@@ -1,0 +1,21 @@
+# Helm packages and local chart deps
+*.tgz
+**/charts/*.tgz
+.helm/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.yaml
+secrets.yml
+!**/templates/secret*.yaml
+
+# Logs / OS / editor
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

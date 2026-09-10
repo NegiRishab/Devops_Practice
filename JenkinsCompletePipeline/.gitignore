@@ -6,14 +6,14 @@ node_modules/
 .env
 .env.*
 !.env.example
+*.pem
+*.key
 
 # Build output
 dist/
 build/
 **/dist/
 **/build/
-
-# Vite
 .vite/
 
 # Logs
@@ -28,22 +28,18 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 
-# OS
+# OS / editor
 .DS_Store
 Thumbs.db
 Desktop.ini
-
-# IDE & editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Docker local data (if added later)
+# Docker local data
 docker-data/
-
-# Misc
 .cache/
 *.tsbuildinfo
 .eslintcache

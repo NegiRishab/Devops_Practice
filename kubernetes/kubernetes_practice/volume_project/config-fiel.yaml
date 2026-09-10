@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  mosquitt.config: |
+    log_type all
+    log_dest stdout
+    log_timestamp true
+    listener 9001

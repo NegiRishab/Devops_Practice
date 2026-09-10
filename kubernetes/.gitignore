@@ -1,0 +1,26 @@
+# Node (smallproject and similar)
+node_modules/
+dist/
+build/
+coverage/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kubeconfig
+*-kubeconfig.yaml
+!.kubeconfig.example
+
+# Helm local packages
+*.tgz
+.helm/
+
+# Logs / OS / editor
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

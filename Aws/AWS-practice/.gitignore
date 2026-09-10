@@ -1,18 +1,11 @@
-# Node
 node_modules/
 dist/
 build/
-coverage/
-
-# Env
 .env
 .env.*
 !.env.example
-
-# Logs / OS / editor
-*.log
-npm-debug.log*
+*.pem
 .DS_Store
-Thumbs.db
 .idea/
 .vscode/
+*.log

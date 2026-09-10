@@ -1,0 +1,32 @@
+# Ansible
+*.retry
+.ansible/
+ansible.log
+.vault_pass
+vault_password_file
+
+# Secrets and keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# Nested app dependencies (if playbooks clone/build locally)
+node_modules/
+target/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs / OS / editor
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

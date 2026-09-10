@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mosquitto-secret
+type: Opaque
+data:
+ cacert.pem: |
+  bW9zcXVpdHRvY29uZmlnOiB8CiAgbGlzdGVuZXIgMTg4MwogIGFsbG93X2Fub255bW91cyB0cnVlCg==
