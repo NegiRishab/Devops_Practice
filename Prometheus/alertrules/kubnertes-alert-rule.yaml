@@ -1,0 +1,46 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: main-rules
+  namespace: monitoring
+  labels:
+    prometheus: k8s
+    release: monitoring
+spec:
+  groups:
+  - name: host-high-cpu-load
+    rules:
+    - alert: HostHighCpuLoad
+      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 2m
+      labels: 
+         security: warning
+      annotations:
+         description: Cpu load is high on {{ $labels.instance }}. Current load is {{ $value }}%
+         runbook_url: https://example.com/runbook/host-high-cpu-load
+         summary: Host CPU load is high
+
+    - alert: HostHighMemoryUsage
+      expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+      for: 2m
+      labels:
+         security: warning
+      annotations:
+         description: Memory usage is high on {{ $labels.instance }}. Current usage is {{ $value }}%
+         runbook_url: https://example.com/runbook/host-high-memory-usage
+         summary: Host memory usage is high
+
+    - alert: KubernetesPodCrashLooping
+      expr: kube_pod_container_status_restarts_total > 5
+      for: 0m
+      labels:
+         security: critical
+      annotations:
+         description: Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping. Restart count is {{ $value }}.
+         runbook_url: https://example.com/runbook/kubernetes-pod-crash-looping
+         summary: Kubernetes pod is crash looping
+
+
+
+
+

@@ -1,0 +1,9 @@
+name: HostHighCpuLoad
+expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+for: 2m
+labels: 
+   security: warning
+annotations:
+   description: Cpu load is high on {{ $labels.instance }}. Current load is {{ $value }}%
+   runbook_url: https://example.com/runbook/host-high-cpu-load
+   summary: Host CPU load is high
