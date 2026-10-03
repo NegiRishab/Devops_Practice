@@ -8,6 +8,11 @@ pipeline {
         nodejs 'nodejs-22'
     }
 
+    environment {
+        AWS_REGION = credentials('aws_region')
+        ECR_REGISTRY = credentials('ecr_registry')
+    }
+
     stages {
 
         stage('Init') {

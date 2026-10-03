@@ -63,6 +63,23 @@ def IncrementBackendVersion() {
     }
 }
 
+
+def LoginToEcr() {
+    if (!env.AWS_REGION?.trim() || !env.ECR_REGISTRY?.trim()) {
+        error 'Set AWS_REGION and ECR_REGISTRY in the Jenkins environment before pushing to ECR.'
+    }
+
+    sh '''
+        set +x
+        ECR_PASSWORD=$(aws ecr get-login-password --region "$AWS_REGION")
+        printf '%s' "$ECR_PASSWORD" | docker login \
+            --username AWS --password-stdin "$ECR_REGISTRY"
+        unset ECR_PASSWORD
+    '''
+}
+
+// Using Docker Hub 
+/*
 def BuildBackendImage() {
     echo "Building backend image..."
 
@@ -91,6 +108,30 @@ def BuildBackendImage() {
         echo "Backend image: ${env.BACKEND_IMAGE}"
     }
 }
+*/
+
+// Using AWS ECR .
+def BuildBackendImage() {
+    echo "Building backend image..."
+
+    withCredentials([[
+        $class: 'AmazonWebServicesCredentialsBinding',
+        credentialsId: 'aws_credentials'
+    ]]) {
+        LoginToEcr()
+        env.BACKEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
+
+        sh '''
+            docker build \
+                -t "$BACKEND_IMAGE" \
+                ./backend
+
+            docker push "$BACKEND_IMAGE"
+        '''
+
+        echo "Backend image: ${env.BACKEND_IMAGE}"
+    }
+}
 
 
 def IncrementFrontendVersion() {
@@ -107,6 +148,8 @@ def IncrementFrontendVersion() {
     }
 }
 
+// Using Docker Hub 
+/*
 def BuildFrontendImage() {
     echo "Building frontend image..."
 
@@ -132,6 +175,31 @@ def BuildFrontendImage() {
         '''
 
         env.FRONTEND_IMAGE = "ankit42098/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
+
+        echo "Frontend image: ${env.FRONTEND_IMAGE}"
+    }
+}
+*/
+
+// Using AWS ECR 
+def BuildFrontendImage() {
+    echo "Building frontend image..."
+
+    withCredentials([[
+        $class: 'AmazonWebServicesCredentialsBinding',
+        credentialsId: 'aws_credentials'
+    ]]) {
+        LoginToEcr()
+        env.FRONTEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
+
+        sh '''
+            docker build \
+                --build-arg VITE_API_URL="http://${SERVER_IP}:5000/api" \
+                -t "$FRONTEND_IMAGE" \
+                ./frontend
+
+            docker push "$FRONTEND_IMAGE"
+        '''
 
         echo "Frontend image: ${env.FRONTEND_IMAGE}"
     }
