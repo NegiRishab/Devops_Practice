@@ -1,0 +1,27 @@
+[Unit]
+Description=Website monitoring, email alerts and Linode recovery
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=website-monitor
+Group=website-monitor
+WorkingDirectory=/opt/website-monitoring-recovery
+EnvironmentFile=/etc/website-monitoring-recovery.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /opt/website-monitoring-recovery/monitor.py --config /opt/website-monitoring-recovery/config.json
+Restart=on-failure
+RestartSec=15
+StateDirectory=website-monitoring-recovery
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/website-monitoring-recovery
+
+[Install]
+WantedBy=multi-user.target

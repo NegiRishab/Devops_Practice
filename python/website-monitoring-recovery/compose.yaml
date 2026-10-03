@@ -1,0 +1,38 @@
+services:
+  app:
+    image: ${APP_IMAGE:-ankit42098/testing-app:v1}
+    container_name: website-app
+    restart: always
+    ports:
+      - "${HOST_PORT:-80}:${CONTAINER_PORT:-3000}"
+    environment:
+      PORT: "${CONTAINER_PORT:-3000}"
+      MONGODB_URI: mongodb://mongo:27017/testing-app
+    depends_on:
+      mongo:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mongo:
+    image: mongo:8.0
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mongo-data:
