@@ -1,0 +1,226 @@
+---
+- name: Deploy Taskboard to Kubernetes
+  hosts: local
+  gather_facts: false
+  vars_files:
+    - project-vars.yaml
+
+  vars:
+    nginx_config: |
+      server {
+          listen 80;
+          server_name _;
+          root /usr/share/nginx/html;
+          index index.html;
+
+          location /api/ {
+              proxy_pass http://backend:5000;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+          }
+
+          location / {
+              try_files $uri $uri/ /index.html;
+          }
+      }
+
+  tasks:
+    - name: Generate the Kubernetes manifest
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/taskboard.yaml"
+        mode: "0644"
+        content: |
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: taskboard
+          ---
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: frontend-nginx
+            namespace: taskboard
+          data:
+            default.conf: |
+          {{ nginx_config | indent(4, true) }}
+          ---
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: mongodb-data
+            namespace: taskboard
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 2Gi
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: mongodb
+            namespace: taskboard
+          spec:
+            replicas: 1
+            strategy:
+              type: Recreate
+            selector:
+              matchLabels:
+                app: mongodb
+            template:
+              metadata:
+                labels:
+                  app: mongodb
+              spec:
+                containers:
+                  - name: mongodb
+                    image: mongo:7
+                    ports:
+                      - containerPort: 27017
+                    volumeMounts:
+                      - name: data
+                        mountPath: /data/db
+                    readinessProbe:
+                      tcpSocket:
+                        port: 27017
+                      initialDelaySeconds: 5
+                volumes:
+                  - name: data
+                    persistentVolumeClaim:
+                      claimName: mongodb-data
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: mongodb
+            namespace: taskboard
+          spec:
+            selector:
+              app: mongodb
+            ports:
+              - port: 27017
+                targetPort: 27017
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: backend
+            namespace: taskboard
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: backend
+            template:
+              metadata:
+                labels:
+                  app: backend
+              spec:
+                containers:
+                  - name: backend
+                    image: {{ backend_image | to_json }}
+                    ports:
+                      - containerPort: 5000
+                    env:
+                      - name: MONGODB_URI
+                        value: mongodb://mongodb:27017/taskboard
+                      - name: PORT
+                        value: "5000"
+                      - name: NODE_ENV
+                        value: production
+                    readinessProbe:
+                      httpGet:
+                        path: /api/health
+                        port: 5000
+                      initialDelaySeconds: 5
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: backend
+            namespace: taskboard
+          spec:
+            selector:
+              app: backend
+            ports:
+              - port: 5000
+                targetPort: 5000
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: frontend
+            namespace: taskboard
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: frontend
+            template:
+              metadata:
+                labels:
+                  app: frontend
+                annotations:
+                  checksum/nginx: {{ nginx_config | hash('sha256') | to_json }}
+              spec:
+                containers:
+                  - name: frontend
+                    image: {{ frontend_image | to_json }}
+                    ports:
+                      - containerPort: 80
+                    volumeMounts:
+                      - name: nginx-config
+                        mountPath: /etc/nginx/conf.d/default.conf
+                        subPath: default.conf
+                    readinessProbe:
+                      httpGet:
+                        path: /
+                        port: 80
+                      initialDelaySeconds: 5
+                volumes:
+                  - name: nginx-config
+                    configMap:
+                      name: frontend-nginx
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: frontend
+            namespace: taskboard
+          spec:
+            type: NodePort
+            selector:
+              app: frontend
+            ports:
+              - port: 80
+                targetPort: 80
+                nodePort: 30080
+      tags: render
+
+    - name: Apply the manifest to the current Kubernetes context
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - apply
+          - -f
+          - "{{ playbook_dir }}/taskboard.yaml"
+      register: apply_result
+      changed_when: "'created' in apply_result.stdout or 'configured' in apply_result.stdout"
+
+    - name: Wait for MongoDB, backend, and frontend
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - -n
+          - taskboard
+          - rollout
+          - status
+          - "deployment/{{ item }}"
+          - --timeout=180s
+      loop:
+        - mongodb
+        - backend
+        - frontend
+      changed_when: false
+

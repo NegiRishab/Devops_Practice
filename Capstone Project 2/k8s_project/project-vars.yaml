@@ -1,0 +1,5 @@
+
+frontend_image: ankit42098/taskboard-frontend:practice-project-1-8.0.0
+backend_image: ankit42098/taskboard-backend:practice-project-1-8.0.0
+
+

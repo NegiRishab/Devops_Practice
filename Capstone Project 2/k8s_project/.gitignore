@@ -27,3 +27,6 @@ id_rsa.pub
 .DS_Store
 Thumbs.db
 *.log
+
+# Generated Kubernetes manifest
+/taskboard.yaml
