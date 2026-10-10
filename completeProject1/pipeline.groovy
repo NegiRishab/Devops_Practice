@@ -79,7 +79,7 @@ def LoginToEcr() {
 }
 
 // Using Docker Hub 
-/*
+
 def BuildBackendImage() {
     echo "Building backend image..."
 
@@ -108,30 +108,30 @@ def BuildBackendImage() {
         echo "Backend image: ${env.BACKEND_IMAGE}"
     }
 }
-*/
+
 
 // Using AWS ECR .
-def BuildBackendImage() {
-    echo "Building backend image..."
+// def BuildBackendImage() {
+//     echo "Building backend image..."
 
-    withCredentials([[
-        $class: 'AmazonWebServicesCredentialsBinding',
-        credentialsId: 'aws_credentials'
-    ]]) {
-        LoginToEcr()
-        env.BACKEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
+//     withCredentials([[
+//         $class: 'AmazonWebServicesCredentialsBinding',
+//         credentialsId: 'aws_credentials'
+//     ]]) {
+//         LoginToEcr()
+//         env.BACKEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
 
-        sh '''
-            docker build \
-                -t "$BACKEND_IMAGE" \
-                ./backend
+//         sh '''
+//             docker build \
+//                 -t "$BACKEND_IMAGE" \
+//                 ./backend
 
-            docker push "$BACKEND_IMAGE"
-        '''
+//             docker push "$BACKEND_IMAGE"
+//         '''
 
-        echo "Backend image: ${env.BACKEND_IMAGE}"
-    }
-}
+//         echo "Backend image: ${env.BACKEND_IMAGE}"
+//     }
+// }
 
 
 def IncrementFrontendVersion() {
@@ -149,7 +149,7 @@ def IncrementFrontendVersion() {
 }
 
 // Using Docker Hub 
-/*
+
 def BuildFrontendImage() {
     echo "Building frontend image..."
 
@@ -179,31 +179,31 @@ def BuildFrontendImage() {
         echo "Frontend image: ${env.FRONTEND_IMAGE}"
     }
 }
-*/
+
 
 // Using AWS ECR 
-def BuildFrontendImage() {
-    echo "Building frontend image..."
+// def BuildFrontendImage() {
+//     echo "Building frontend image..."
 
-    withCredentials([[
-        $class: 'AmazonWebServicesCredentialsBinding',
-        credentialsId: 'aws_credentials'
-    ]]) {
-        LoginToEcr()
-        env.FRONTEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
+//     withCredentials([[
+//         $class: 'AmazonWebServicesCredentialsBinding',
+//         credentialsId: 'aws_credentials'
+//     ]]) {
+//         LoginToEcr()
+//         env.FRONTEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
 
-        sh '''
-            docker build \
-                --build-arg VITE_API_URL="http://${SERVER_IP}:5000/api" \
-                -t "$FRONTEND_IMAGE" \
-                ./frontend
+//         sh '''
+//             docker build \
+//                 --build-arg VITE_API_URL="http://${SERVER_IP}:5000/api" \
+//                 -t "$FRONTEND_IMAGE" \
+//                 ./frontend
 
-            docker push "$FRONTEND_IMAGE"
-        '''
+//             docker push "$FRONTEND_IMAGE"
+//         '''
 
-        echo "Frontend image: ${env.FRONTEND_IMAGE}"
-    }
-}
+//         echo "Frontend image: ${env.FRONTEND_IMAGE}"
+//     }
+// }
 
 def DeployOnServer() {
     echo "Starting deployment..."
