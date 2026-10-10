@@ -1,118 +1,87 @@
 def gv
 
 pipeline {
-
     agent any
 
     tools {
         nodejs 'nodejs-22'
     }
 
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+        timeout(time: 90, unit: 'MINUTES')
+    }
+
     environment {
         AWS_REGION = credentials('aws_region')
-        ECR_REGISTRY = credentials('ecr_registry')
+        TF_IN_AUTOMATION = 'true'
+        TF_INPUT = 'false'
     }
 
     stages {
-
         stage('Init') {
             steps {
-                script {
-                     dir('completeProject1') {
-                    gv = load 'pipeline.groovy'
-                     }
-                    echo "Branch name is ${env.BRANCH_NAME}"
+                dir('completeProject1') {
+                    script {
+                        gv = load 'pipeline.groovy'
+                        gv.PrepareBuild()
+                    }
                 }
             }
         }
 
         stage('Test') {
             steps {
-                script {
-                    dir('completeProject1') {
-                    gv.RunTests()
-                    }
+                dir('completeProject1') {
+                    script { gv.RunTests() }
                 }
             }
         }
 
-        stage('Main Pipeline') {
-
-            when {
-                branch 'practice-project-1'
-            }
-
+        stage('Deploy practice-project-1') {
+            when { branch 'practice-project-1' }
             stages {
-
-                stage('Creating infra for the application') {
+                stage('Create ECR and EKS infrastructure') {
                     steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.CreateInfrastructure()
-                        }
+                        dir('completeProject1') {
+                            script { gv.CreateInfrastructure() }
                         }
                     }
                 }
 
-                stage('Increment backend version') {
+                stage('Build and push backend to ECR') {
                     steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.IncrementBackendVersion()
-                        }
+                        dir('completeProject1') {
+                            script { gv.BuildBackendImage() }
                         }
                     }
                 }
 
-                stage('Build backend image') {
+                stage('Build and push frontend to ECR') {
                     steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.BuildBackendImage()
-                        }
+                        dir('completeProject1') {
+                            script { gv.BuildFrontendImage() }
                         }
                     }
                 }
 
-                stage('Increment frontend version') {
+                stage('Deploy to EKS') {
                     steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.IncrementFrontendVersion()
-                        }
+                        dir('completeProject1') {
+                            script { gv.DeployToEks() }
                         }
                     }
                 }
+            }
+        }
+    }
 
-                stage('Build frontend image') {
-                    steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.BuildFrontendImage()
-                        }
-                        }
-                    }
-                }
-
-                stage('Deploy to server using Ansible') {
-                    steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.DeployOnServer()
-                        }
-                        }
-                    }
-                }
-
-                stage('Version bump') {
-                    steps {
-                        script {
-                            dir('completeProject1') {
-                            gv.VersionBump()
-                        }
-                        }
-                    }
-                }
+    post {
+        always {
+            // Remove workspace-specific Docker credentials, kubeconfig and plan.
+            dir('completeProject1/.ci') {
+                deleteDir()
             }
         }
     }

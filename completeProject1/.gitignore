@@ -58,3 +58,8 @@ docker-data/
 .cache/
 *.tsbuildinfo
 .eslintcache
+
+# Jenkins deployment artifacts
+.ci/
+EKswithterraform/backend.hcl
+*.tfplan

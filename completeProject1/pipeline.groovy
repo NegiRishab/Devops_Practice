@@ -1,74 +1,64 @@
-def RunTests() {
-    echo "Running backend and frontend tests..."
+def PrepareBuild() {
+    def commit = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
+    def jobName = (env.JOB_NAME ?: 'taskboard')
+        .replaceAll('[^a-zA-Z0-9_.-]', '-').take(80)
+    env.IMAGE_TAG = "build-${jobName}-${env.BUILD_NUMBER}-${commit}"
+    sh 'mkdir -p .ci && chmod 700 .ci'
+}
 
+def RunTests() {
     parallel(
         'Backend Tests': {
             dir('backend') {
-                sh 'npm install'
+                sh 'npm ci'
                 sh 'npm test'
             }
         },
         'Frontend Tests': {
             dir('frontend') {
-                sh 'npm install'
+                sh 'npm ci'
                 sh 'npm test'
             }
         }
     )
 }
 
+def WithAws(Closure body) {
+    withCredentials([[
+        $class: 'AmazonWebServicesCredentialsBinding',
+        credentialsId: 'aws_credentials'
+    ]]) {
+        body()
+    }
+}
+
 def CreateInfrastructure() {
-    echo "Creating infrastructure..."
 
-    dir('terraform') {
-        withCredentials([
-            string(
-                credentialsId: 'linode_token',
-                variable: 'LINODE_TOKEN'
-            ),
-            string(
-                credentialsId: 'linode-public-ssh-key',
-                variable: 'SSH_PUBLIC_KEY'
-            )
-        ]) {
-            sh '''
-                terraform init
-
-                terraform apply -auto-approve \
-                    -var="linode_token=$LINODE_TOKEN" \
-                    -var="ssh_public_key=$SSH_PUBLIC_KEY"
-            '''
-
-            env.SERVER_IP = sh(
-                script: 'terraform output -raw server_ip',
-                returnStdout: true
-            ).trim()
-
-            echo "Linode Server IP: ${env.SERVER_IP}"
+    withCredentials([
+        file(credentialsId: 'taskboard_tfvars', variable: 'TFVARS_FILE'),
+        file(credentialsId: 'taskboard_tf_backend', variable: 'TF_BACKEND_FILE')
+    ]) {
+        WithAws {
+            withEnv(["TF_VAR_aws_region=${env.AWS_REGION}"]) {
+                dir('EKswithterraform') {
+                    sh '''
+                        terraform init -input=false -backend-config="$TF_BACKEND_FILE"
+                        terraform validate
+                        terraform plan -input=false -lock-timeout=5m \
+                            -var-file="$TFVARS_FILE" -out=../.ci/infrastructure.tfplan
+                        terraform apply -input=false -lock-timeout=5m ../.ci/infrastructure.tfplan
+                    '''
+                    env.EKS_CLUSTER_NAME = sh(script: 'terraform output -raw cluster_name', returnStdout: true).trim()
+                    env.ECR_REGISTRY = sh(script: 'terraform output -raw ecr_registry', returnStdout: true).trim()
+                    env.BACKEND_REPOSITORY = sh(script: 'terraform output -raw backend_repository_url', returnStdout: true).trim()
+                    env.FRONTEND_REPOSITORY = sh(script: 'terraform output -raw frontend_repository_url', returnStdout: true).trim()
+                }
+            }
         }
     }
 }
 
-def IncrementBackendVersion() {
-    echo "Incrementing backend version..."
-
-    dir('backend') {
-        sh 'npm version major --no-git-tag-version'
-
-        def packageJsonFile = readJSON file: 'package.json'
-
-        env.BACKEND_VERSION = packageJsonFile.version
-
-        echo "Backend version: ${env.BACKEND_VERSION}"
-    }
-}
-
-
 def LoginToEcr() {
-    if (!env.AWS_REGION?.trim() || !env.ECR_REGISTRY?.trim()) {
-        error 'Set AWS_REGION and ECR_REGISTRY in the Jenkins environment before pushing to ECR.'
-    }
-
     sh '''
         set +x
         ECR_PASSWORD=$(aws ecr get-login-password --region "$AWS_REGION")
@@ -78,184 +68,39 @@ def LoginToEcr() {
     '''
 }
 
-// Using Docker Hub 
 
 def BuildBackendImage() {
-    echo "Building backend image..."
-
-    withCredentials([
-        usernamePassword(
-            credentialsId: 'docker_hub',
-            usernameVariable: 'DOCKER_USERNAME',
-            passwordVariable: 'DOCKER_PASSWORD'
-        )
-    ]) {
-        sh '''
-            echo "$DOCKER_PASSWORD" | docker login \
-                -u "$DOCKER_USERNAME" \
-                --password-stdin
-
-            docker build \
-                -t "ankit42098/taskboard-backend:${BRANCH_NAME}-${BACKEND_VERSION}" \
-                ./backend
-
-            docker push \
-                "ankit42098/taskboard-backend:${BRANCH_NAME}-${BACKEND_VERSION}"
-        '''
-
-        env.BACKEND_IMAGE = "ankit42098/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
-
-        echo "Backend image: ${env.BACKEND_IMAGE}"
+    env.BACKEND_IMAGE = "${env.BACKEND_REPOSITORY}:${env.IMAGE_TAG}"
+    WithAws {
+        withEnv(["DOCKER_CONFIG=${pwd()}/.ci/docker"]) {
+            LoginToEcr()
+            sh '''
+                docker build --platform linux/amd64 -t "$BACKEND_IMAGE" ./backend
+                docker push "$BACKEND_IMAGE"
+            '''
+        }
     }
 }
-
-
-// Using AWS ECR .
-// def BuildBackendImage() {
-//     echo "Building backend image..."
-
-//     withCredentials([[
-//         $class: 'AmazonWebServicesCredentialsBinding',
-//         credentialsId: 'aws_credentials'
-//     ]]) {
-//         LoginToEcr()
-//         env.BACKEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-backend:${env.BRANCH_NAME}-${env.BACKEND_VERSION}"
-
-//         sh '''
-//             docker build \
-//                 -t "$BACKEND_IMAGE" \
-//                 ./backend
-
-//             docker push "$BACKEND_IMAGE"
-//         '''
-
-//         echo "Backend image: ${env.BACKEND_IMAGE}"
-//     }
-// }
-
-
-def IncrementFrontendVersion() {
-    echo "Incrementing frontend version..."
-
-    dir('frontend') {
-        sh 'npm version major --no-git-tag-version'
-
-        def packageJsonFile = readJSON file: 'package.json'
-
-        env.FRONTEND_VERSION = packageJsonFile.version
-
-        echo "Frontend version: ${env.FRONTEND_VERSION}"
-    }
-}
-
-// Using Docker Hub 
 
 def BuildFrontendImage() {
-    echo "Building frontend image..."
-
-    withCredentials([
-        usernamePassword(
-            credentialsId: 'docker_hub',
-            usernameVariable: 'DOCKER_USERNAME',
-            passwordVariable: 'DOCKER_PASSWORD'
-        )
-    ]) {
-        sh '''
-            echo "$DOCKER_PASSWORD" | docker login \
-                -u "$DOCKER_USERNAME" \
-                --password-stdin
-
-            docker build \
-                --build-arg VITE_API_URL="http://${SERVER_IP}:5000/api" \
-                -t "ankit42098/taskboard-frontend:${BRANCH_NAME}-${FRONTEND_VERSION}" \
-                ./frontend
-
-            docker push \
-                "ankit42098/taskboard-frontend:${BRANCH_NAME}-${FRONTEND_VERSION}"
-        '''
-
-        env.FRONTEND_IMAGE = "ankit42098/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
-
-        echo "Frontend image: ${env.FRONTEND_IMAGE}"
+    env.FRONTEND_IMAGE = "${env.FRONTEND_REPOSITORY}:${env.IMAGE_TAG}"
+    WithAws {
+        withEnv(["DOCKER_CONFIG=${pwd()}/.ci/docker"]) {
+            LoginToEcr()
+            sh '''
+                docker build --platform linux/amd64 --build-arg VITE_API_URL=/api \
+                    -t "$FRONTEND_IMAGE" ./frontend
+                docker push "$FRONTEND_IMAGE"
+            '''
+        }
     }
 }
 
-
-// Using AWS ECR 
-// def BuildFrontendImage() {
-//     echo "Building frontend image..."
-
-//     withCredentials([[
-//         $class: 'AmazonWebServicesCredentialsBinding',
-//         credentialsId: 'aws_credentials'
-//     ]]) {
-//         LoginToEcr()
-//         env.FRONTEND_IMAGE = "${env.ECR_REGISTRY}/taskboard-frontend:${env.BRANCH_NAME}-${env.FRONTEND_VERSION}"
-
-//         sh '''
-//             docker build \
-//                 --build-arg VITE_API_URL="http://${SERVER_IP}:5000/api" \
-//                 -t "$FRONTEND_IMAGE" \
-//                 ./frontend
-
-//             docker push "$FRONTEND_IMAGE"
-//         '''
-
-//         echo "Frontend image: ${env.FRONTEND_IMAGE}"
-//     }
-// }
-
-def DeployOnServer() {
-    echo "Starting deployment..."
-
-    echo "SERVER_IP: ${env.SERVER_IP}"
-    echo "BACKEND_IMAGE: ${env.BACKEND_IMAGE}"
-    echo "FRONTEND_IMAGE: ${env.FRONTEND_IMAGE}"
-
-  dir('ansible') {
-     withCredentials([
-        sshUserPrivateKey(
-            credentialsId: 'linode_private_ssh_key',
-            keyFileVariable: 'SSH_KEY',
-            usernameVariable: 'SSH_USER'
-        )
-    ]) {
-        sh '''
-            ansible-playbook \
-                -i "${SERVER_IP}," \
-                playbook.yaml \
-                -u "${SSH_USER}" \
-                --private-key "${SSH_KEY}" \
-                -e "frontend_image=${FRONTEND_IMAGE}" \
-                -e "backend_image=${BACKEND_IMAGE}" \
-                -e "server_ip=${SERVER_IP}"
-        '''
-    }
-}
-}
-
-def VersionBump() {
-    echo "Version bumping..."
-
-    withCredentials([
-        usernamePassword(
-            credentialsId: 'git_hub',
-            usernameVariable: 'GITHUB_USERNAME',
-            passwordVariable: 'GITHUB_PASSWORD'
-        )
-    ]) {
-        sh '''
-            git config --global user.name "Jenkins"
-            
-            git config --global user.email "jenkins@taskboard.com"
-
-            git remote set-url origin \
-                "https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/${GITHUB_USERNAME}/Devops_Practice.git"
-
-            git add .
-            git commit -m "Version bump"
-            git push origin HEAD:${BRANCH_NAME}
-        '''
+def DeployToEks() {
+    WithAws {
+        withEnv(["KUBECONFIG=${pwd()}/.ci/kubeconfig"]) {
+            sh 'bash k8s/deploy.sh'
+        }
     }
 }
 
